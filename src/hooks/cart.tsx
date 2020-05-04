@@ -13,7 +13,7 @@ interface Product {
   title: string;
   image_url: string;
   price: number;
-  quantity: number;
+  quantity?: number;
 }
 
 interface CartContext {
@@ -44,23 +44,32 @@ const CartProvider: React.FC = ({ children }) => {
 
   const addToCart = useCallback(
     async product => {
-      let newProducts: Product[] = [];
-      const productToAdd = products.find(item => item.id === product.id);
+      const checkExists = products.find(item => item.id === product.id);
 
-      if (productToAdd) {
-        productToAdd.quantity += product.quantity;
-        newProducts = [...products];
-      } else {
-        newProducts = [...products, product];
+      if (!checkExists) {
+        const newProduct: Product = {
+          id: product.id,
+          title: product.title,
+          image_url: product.image_url,
+          price: product.price,
+          quantity: 1,
+        };
+
+        const newProducts: Product[] = [...products, newProduct];
+
+        setProducts(newProducts);
+
+        await AsyncStorage.setItem(
+          '@GoMarketPlace:cartproducts',
+          JSON.stringify(newProducts),
+        );
+
+        //   productToAdd.quantity
+        //     ? (productToAdd.quantity += 1)
+        //     : (productToAdd.quantity = 1);
+        //   newProducts = [...products];
+        // } else {
       }
-
-      await AsyncStorage.setItem(
-        '@GoMarketPlace:cartproducts',
-        JSON.stringify(newProducts),
-      );
-
-      setProducts(newProducts);
-      // TODO ADD A NEW ITEM TO THE CART
     },
     [products],
   );
@@ -70,7 +79,9 @@ const CartProvider: React.FC = ({ children }) => {
       const productToAdd = products.find(item => item.id === id);
 
       if (productToAdd) {
-        productToAdd.quantity += 1;
+        productToAdd.quantity
+          ? (productToAdd.quantity += 1)
+          : (productToAdd.quantity = 1);
         setProducts([...products]);
       }
 
@@ -89,7 +100,9 @@ const CartProvider: React.FC = ({ children }) => {
       let newProducts: Product[] = [];
 
       if (productToRemove) {
-        productToRemove.quantity -= 1;
+        productToRemove.quantity
+          ? (productToRemove.quantity -= 1)
+          : (productToRemove.quantity = 0);
 
         if (productToRemove.quantity === 0) {
           newProducts = products.filter(product => product.id !== id);
