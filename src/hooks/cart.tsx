@@ -44,27 +44,22 @@ const CartProvider: React.FC = ({ children }) => {
 
   const addToCart = useCallback(
     async product => {
+      let newProducts: Product[] = [];
       const productToAdd = products.find(item => item.id === product.id);
 
       if (productToAdd) {
         productToAdd.quantity += product.quantity;
-
-        await AsyncStorage.setItem(
-          '@GoMarketPlace:cartproducts',
-          JSON.stringify(products),
-        );
-
-        setProducts([...products]);
+        newProducts = [...products];
       } else {
-        const newProducts = [...products, product];
-
-        await AsyncStorage.setItem(
-          '@GoMarketPlace:cartproducts',
-          JSON.stringify(newProducts),
-        );
-
-        setProducts(newProducts);
+        newProducts = [...products, product];
       }
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cartproducts',
+        JSON.stringify(newProducts),
+      );
+
+      setProducts(newProducts);
       // TODO ADD A NEW ITEM TO THE CART
     },
     [products],
@@ -76,15 +71,13 @@ const CartProvider: React.FC = ({ children }) => {
 
       if (productToAdd) {
         productToAdd.quantity += 1;
-
-        await AsyncStorage.setItem(
-          '@GoMarketPlace:cartproducts',
-          JSON.stringify(products),
-        );
-
         setProducts([...products]);
       }
-      // TODO INCREMENTS A PRODUCT QUANTITY IN THE CART
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cartproducts',
+        JSON.stringify(products),
+      );
     },
     [products],
   );
@@ -93,27 +86,24 @@ const CartProvider: React.FC = ({ children }) => {
     async id => {
       const productToRemove = products.find(item => item.id === id);
 
+      let newProducts: Product[] = [];
+
       if (productToRemove) {
         productToRemove.quantity -= 1;
 
         if (productToRemove.quantity === 0) {
-          const newProducts = products.filter(product => product.id !== id);
-
-          await AsyncStorage.setItem(
-            '@GoMarketPlace:cartproducts',
-            JSON.stringify(newProducts),
-          );
-
+          newProducts = products.filter(product => product.id !== id);
           setProducts(newProducts);
         } else {
-          await AsyncStorage.setItem(
-            '@GoMarketPlace:cartproducts',
-            JSON.stringify(products),
-          );
-          setProducts([...products]);
+          newProducts = products;
+          setProducts([...newProducts]);
         }
       }
-      // TODO DECREMENTS A PRODUCT QUANTITY IN THE CART
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:cartproducts',
+        JSON.stringify(newProducts),
+      );
     },
     [products],
   );
